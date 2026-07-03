@@ -6,9 +6,37 @@ resource "aws_vpc" "main" {
 
   tags = {
     Name        = var.vpc_name
-    ENVIRONMENT = var.environment
+    Environment = var.environment
     ManagedBy   = "terraform"
     Project     = "AWS production infrastructure"
   }
 
+}
+
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name        = "${var.vpc_name}-igw"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "AWS production infrastructure"
+  }
+}
+
+resource "aws_subnet" "public" {
+    count = length(var.public_subnet_cidrs)
+    vpc_id = aws_vpc.main.id
+    cidr_block = var.public_subnet_cidrs[count.index]
+    availability_zone = var.availability_zones[count.index]
+    map_public_ip_on_launch = true
+
+    tags = {
+        Name = "${var.vpc_name}-public-subnet${count.index + 1}"
+        Environment = var.environment
+        ManagedBy = "terraform"
+        project = "AWS production environment"
+        availability_zone = var.availability_zones[count.index]
+
+    }
 }
